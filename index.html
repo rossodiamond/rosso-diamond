@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rosso Diamond — Fine Jewellery</title>
+<meta name="description" content="Rosso Diamond — a curated diamond jewellery collection." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Jost:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ivory: #FAF7F3;
+    --blush: #EAD5D3;
+    --rose: #B76E79;
+    --rose-dark: #9A5560;
+    --champagne: #E7DCC8;
+    --ink: #3B2F34;
+    --ink-soft: #7A6A6E;
+    --line: #E3D6D4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--ivory); color: var(--ink); font-family: "Jost", sans-serif; font-weight: 300; }
+
+  .fade { animation: fade .7s ease both; }
+  @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .fade { animation: none; } }
+
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 32px; border-bottom: 1px solid var(--line);
+    background: rgba(250,247,243,0.92); position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(6px);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .wordmark { font-family: "Marcellus", serif; font-size: 19px; letter-spacing: 0.22em; }
+  .lang-btn {
+    background: none; border: none; cursor: pointer;
+    font-family: "Jost", sans-serif; font-size: 11px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--rose-dark); padding: 6px 4px;
+  }
+  .lang-btn:focus-visible { outline: 2px solid var(--rose); outline-offset: 2px; }
+
+  header.banner { position: relative; }
+  .banner-img { width: 100%; height: min(62vh, 560px); object-fit: cover; display: block; }
+  .banner-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(59,47,52,0.55), rgba(59,47,52,0.05) 55%);
+  }
+  .banner-text { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 24px 56px; text-align: center; color: #fff; }
+  .banner-fallback {
+    background: linear-gradient(140deg, var(--blush), var(--champagne));
+    padding: 110px 24px 120px; text-align: center; color: var(--ink);
+  }
+  .banner-fallback .sub { color: var(--rose-dark); }
+  .sub {
+    font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase;
+    margin-bottom: 12px; color: var(--champagne);
+  }
+  h1 {
+    font-family: "Marcellus", serif; font-weight: 400;
+    font-size: clamp(30px, 5.5vw, 56px); letter-spacing: 0.04em;
+  }
+
+  .intro { max-width: 640px; margin: 0 auto; padding: 72px 24px 56px; text-align: center; }
+  .divider { display: flex; align-items: center; gap: 14px; justify-content: center; }
+  .divider .rule { height: 1px; width: 72px; background: var(--line); }
+  .intro p { font-size: 17px; line-height: 1.85; margin-top: 28px; white-space: pre-wrap; }
+
+  .gallery { max-width: 1100px; margin: 0 auto; padding: 0 24px 96px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 28px; }
+  figure .frame { border: 1px solid var(--line); padding: 10px; background: #fff; }
+  figure img {
+    width: 100%; aspect-ratio: 1 / 1.05; object-fit: cover; display: block;
+    transition: transform .35s ease;
+  }
+  figure img:hover { transform: scale(1.015); }
+  figcaption {
+    font-size: 13px; letter-spacing: 0.08em; color: var(--ink-soft);
+    text-align: center; margin-top: 10px;
+  }
+  .empty {
+    text-align: center; padding: 48px 0; border: 1px dashed var(--line);
+    font-size: 14px; color: var(--ink-soft);
+  }
+
+  footer { border-top: 1px solid var(--line); padding: 36px 24px; text-align: center; }
+  footer .name { font-family: "Marcellus", serif; font-size: 14px; letter-spacing: 0.24em; margin-top: 10px; }
+  footer .tag { font-size: 11px; letter-spacing: 0.14em; color: var(--ink-soft); margin-top: 6px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">
+    <svg width="14" height="14" viewBox="0 0 10 10" aria-hidden="true">
+      <rect x="2.2" y="2.2" width="5.6" height="5.6" transform="rotate(45 5 5)" fill="none" stroke="var(--rose)" stroke-width="0.9"/>
+    </svg>
+    <span class="wordmark">ROSSO DIAMOND</span>
+  </div>
+  <button class="lang-btn" id="langToggle" aria-label="Change language">Türkçe</button>
+</nav>
+
+<header class="banner fade" id="banner"></header>
+
+<section class="intro fade">
+  <div class="divider" aria-hidden="true">
+    <div class="rule"></div>
+    <svg width="10" height="10" viewBox="0 0 10 10">
+      <rect x="2.2" y="2.2" width="5.6" height="5.6" transform="rotate(45 5 5)" fill="none" stroke="var(--rose)" stroke-width="0.9"/>
+    </svg>
+    <div class="rule"></div>
+  </div>
+  <p id="introText"></p>
+</section>
+
+<section class="gallery">
+  <div id="galleryContent"></div>
+</section>
+
+<footer>
+  <svg width="12" height="12" viewBox="0 0 10 10" aria-hidden="true">
+    <rect x="2.2" y="2.2" width="5.6" height="5.6" transform="rotate(45 5 5)" fill="none" stroke="var(--rose)" stroke-width="0.9"/>
+  </svg>
+  <p class="name">ROSSO DIAMOND</p>
+  <p class="tag" id="footerTag"></p>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var UI = {
+    en: { langBtn: "Türkçe", empty: "Collection photos coming soon.", footer: "Fine Jewellery · Istanbul", docLang: "en" },
+    tr: { langBtn: "English", empty: "Koleksiyon fotoğrafları yakında burada.", footer: "Fine Jewellery · İstanbul", docLang: "tr" }
+  };
+
+  var lang = localStorage.getItem("rd-lang") || "en";
+  var content = null;
+  var photos = [];
+
+  function prettifyFilename(name) {
+    return name
+      .replace(/\.[^.]+$/, "")
+      .replace(/^\d+[-_ ]*/, "")
+      .replace(/[-_]+/g, " ")
+      .trim();
+  }
+
+  function render() {
+    var t = UI[lang];
+    document.documentElement.lang = t.docLang;
+    document.getElementById("langToggle").textContent = t.langBtn;
+    document.getElementById("footerTag").textContent = t.footer;
+
+    var texts = content && content[lang] ? content[lang] : { headline: "", subline: "", intro: "" };
+    document.getElementById("introText").textContent = texts.intro || "";
+
+    // Banner
+    var banner = document.getElementById("banner");
+    banner.innerHTML = "";
+    var img = new Image();
+    img.className = "banner-img";
+    img.alt = texts.headline || "Rosso Diamond";
+    img.onload = function () {
+      banner.appendChild(img);
+      var overlay = document.createElement("div");
+      overlay.className = "banner-overlay";
+      var textWrap = document.createElement("div");
+      textWrap.className = "banner-text";
+      var sub = document.createElement("p"); sub.className = "sub"; sub.textContent = texts.subline || "";
+      var h = document.createElement("h1"); h.textContent = texts.headline || "";
+      textWrap.appendChild(sub); textWrap.appendChild(h);
+      banner.appendChild(overlay); banner.appendChild(textWrap);
+    };
+    img.onerror = function () {
+      var fb = document.createElement("div");
+      fb.className = "banner-fallback";
+      var sub = document.createElement("p"); sub.className = "sub"; sub.textContent = texts.subline || "";
+      var h = document.createElement("h1"); h.textContent = texts.headline || "";
+      fb.appendChild(sub); fb.appendChild(h);
+      banner.appendChild(fb);
+    };
+    img.src = "images/banner.jpg?v=" + Date.now();
+
+    // Gallery
+    var wrap = document.getElementById("galleryContent");
+    wrap.innerHTML = "";
+    if (!photos.length) {
+      var empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = t.empty;
+      wrap.appendChild(empty);
+      return;
+    }
+    var grid = document.createElement("div");
+    grid.className = "grid";
+    var captions = (content && content.captions) || {};
+    photos.forEach(function (file, i) {
+      var fig = document.createElement("figure");
+      fig.className = "fade";
+      fig.style.animationDelay = Math.min(i * 60, 400) + "ms";
+      var frame = document.createElement("div");
+      frame.className = "frame";
+      var pimg = document.createElement("img");
+      pimg.loading = "lazy";
+      pimg.src = "images/gallery/" + encodeURIComponent(file);
+      var caption = captions[file] !== undefined ? captions[file] : prettifyFilename(file);
+      pimg.alt = caption || "Rosso Diamond";
+      frame.appendChild(pimg);
+      fig.appendChild(frame);
+      if (caption) {
+        var cap = document.createElement("figcaption");
+        cap.textContent = caption;
+        fig.appendChild(cap);
+      }
+      grid.appendChild(fig);
+    });
+    wrap.appendChild(grid);
+  }
+
+  document.getElementById("langToggle").addEventListener("click", function () {
+    lang = lang === "en" ? "tr" : "en";
+    localStorage.setItem("rd-lang", lang);
+    render();
+  });
+
+  Promise.all([
+    fetch("content.json?v=" + Date.now()).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }),
+    fetch("gallery.json?v=" + Date.now()).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; })
+  ]).then(function (res) {
+    content = res[0];
+    photos = Array.isArray(res[1]) ? res[1] : [];
+    render();
+  });
+})();
+</script>
+</body>
+</html>
