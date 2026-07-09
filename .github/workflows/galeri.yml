@@ -1,0 +1,29 @@
+name: Galeri listesini guncelle
+
+on:
+  push:
+    paths:
+      - "images/gallery/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  guncelle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: gallery.json olustur
+        run: |
+          cd images/gallery
+          ls -1 | grep -iE '\.(jpe?g|png|webp)$' | sort | jq -R -s -c 'split("\n") | map(select(length > 0))' > ../../gallery.json
+          cat ../../gallery.json
+
+      - name: Degisikligi kaydet
+        run: |
+          git config user.name "galeri-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add gallery.json
+          git diff --cached --quiet || (git commit -m "Galeri listesi guncellendi" && git push)
