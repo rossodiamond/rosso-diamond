@@ -284,9 +284,26 @@
       '<div id="galleryBox"><p class="hint">Yükleniyor…</p></div>';
     app.appendChild(sg);
 
+    // Videolar
+    var sv = document.createElement("section");
+    sv.innerHTML =
+      '<h2>Videolar <span id="videoCount"></span></h2>' +
+      '<p class="hint">Videoyu önce YouTube\'a yükle (kanalında görünmesin istiyorsan gizlilik ayarını "Liste dışı / Unlisted" yap), sonra linkini buraya yapıştır. Video sitede "Videolar" bölümünde gömülü oynatıcıyla görünür.</p>' +
+      '<div class="row" style="margin-bottom:6px;">' +
+      '<input type="text" id="videoUrl" placeholder="YouTube linki (youtube.com/watch?v=… veya youtu.be/…)" style="flex:2 1 260px;" />' +
+      '<input type="text" id="videoTitle" placeholder="Başlık (isteğe bağlı)" style="flex:1 1 160px;" />' +
+      '<span style="padding-bottom:14px;"><button class="btn" id="videoAdd">Video Ekle</button></span></div>' +
+      '<div id="videoBox"></div>';
+    app.appendChild(sv);
+    document.getElementById("videoAdd").addEventListener("click", addVideo);
+    document.getElementById("videoUrl").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") addVideo();
+    });
+
     loadContent().then(function () {
       renderTexts();
       fillCatSelect();
+      renderVideos();
       return loadGallery();
     }).then(renderGallery).catch(handleErr);
 
@@ -333,6 +350,7 @@
       content = JSON.parse(b64decodeUtf8(info.content));
       if (!content.captions) content.captions = {};
       if (!content.categories) content.categories = DEFAULT_CATEGORIES;
+      if (!Array.isArray(content.videos)) content.videos = [];
       return content;
     });
   }
@@ -583,6 +601,81 @@
       btn.disabled = false;
       btn.textContent = "Fotoğraf Ekle";
     });
+  }
+
+  function parseYouTubeId(url) {
+    var m = url.match(/(?:youtube\.com\/(?:watch\?[^#]*v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,20})/);
+    return m ? m[1] : null;
+  }
+
+  function addVideo() {
+    var urlEl = document.getElementById("videoUrl");
+    var titleEl = document.getElementById("videoTitle");
+    var id = parseYouTubeId(urlEl.value.trim());
+    if (!id) { log("Link anlaşılamadı — YouTube video linki yapıştır (watch, shorts veya youtu.be)."); return; }
+    if (content.videos.some(function (v) { return v.id === id; })) { log("Bu video zaten ekli."); return; }
+    content.videos.push({ id: id, title: titleEl.value.trim() });
+    var btn = document.getElementById("videoAdd");
+    btn.disabled = true;
+    saveContent("Video eklendi: " + id)
+      .then(function () {
+        urlEl.value = ""; titleEl.value = "";
+        renderVideos();
+        log("Video eklendi. Sitede görünmesi 1-2 dakika sürebilir.");
+      })
+      .catch(handleErr)
+      .finally(function () { btn.disabled = false; });
+  }
+
+  function renderVideos() {
+    var box = document.getElementById("videoBox");
+    if (!box) return;
+    var count = document.getElementById("videoCount");
+    if (count) count.textContent = "(" + content.videos.length + ")";
+    box.innerHTML = "";
+    if (!content.videos.length) {
+      box.innerHTML = '<p class="hint">Henüz video yok.</p>';
+      return;
+    }
+    var grid = document.createElement("div");
+    grid.className = "grid";
+    content.videos.forEach(function (v, idx) {
+      var card = document.createElement("div");
+      card.className = "card";
+      var img = document.createElement("img");
+      img.loading = "lazy";
+      img.src = "https://img.youtube.com/vi/" + v.id + "/hqdefault.jpg";
+      img.alt = v.title || "Video";
+      var pad = document.createElement("div");
+      pad.className = "pad";
+      var t = document.createElement("input");
+      t.type = "text";
+      t.placeholder = "Başlık (isteğe bağlı)";
+      t.value = v.title || "";
+      t.addEventListener("blur", function () {
+        if (content.videos[idx].title === t.value) return;
+        content.videos[idx].title = t.value;
+        saveContent("Video basligi guncellendi")
+          .then(function () { log("Başlık kaydedildi."); })
+          .catch(handleErr);
+      });
+      var del = document.createElement("button");
+      del.className = "btn ghost small";
+      del.textContent = "Sil";
+      del.addEventListener("click", function () {
+        if (!confirm("Video listeden kaldırılsın mı? (YouTube'daki video silinmez)")) return;
+        content.videos.splice(idx, 1);
+        saveContent("Video kaldirildi: " + v.id)
+          .then(function () { renderVideos(); log("Video kaldırıldı."); })
+          .catch(handleErr);
+      });
+      pad.appendChild(t);
+      pad.appendChild(del);
+      card.appendChild(img);
+      card.appendChild(pad);
+      grid.appendChild(card);
+    });
+    box.appendChild(grid);
   }
 
   function handleErr(err) {
