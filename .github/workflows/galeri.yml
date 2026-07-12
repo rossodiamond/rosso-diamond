@@ -17,9 +17,25 @@ jobs:
 
       - name: gallery.json olustur
         run: |
-          cd images/gallery
-          ls -1 | grep -iE '\.(jpe?g|png|webp)$' | sort | jq -R -s -c 'split("\n") | map(select(length > 0))' > ../../gallery.json
-          cat ../../gallery.json
+          python3 - <<'PYEOF'
+          import json, os, re
+          pat = re.compile(r'\.(jpe?g|png|webp)$', re.I)
+          base = 'images/gallery'
+          out = {}
+          root_files = sorted(f for f in os.listdir(base)
+                              if os.path.isfile(os.path.join(base, f)) and pat.search(f))
+          if root_files:
+              out['_genel'] = root_files
+          for d in sorted(os.listdir(base)):
+              full = os.path.join(base, d)
+              if os.path.isdir(full):
+                  fs = sorted(f for f in os.listdir(full) if pat.search(f))
+                  if fs:
+                      out[d] = fs
+          with open('gallery.json', 'w', encoding='utf-8') as fh:
+              json.dump(out, fh, ensure_ascii=False)
+          print(json.dumps(out, ensure_ascii=False, indent=1))
+          PYEOF
 
       - name: Degisikligi kaydet
         run: |
