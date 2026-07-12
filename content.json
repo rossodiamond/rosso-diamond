@@ -11,7 +11,28 @@
   },
   "captions": {
     "ornek-dosya-adi.jpg": "Bu dosya için özel açıklama örneği",
-    "4970780d-21d8-4b1a-a55b-bc6fe408b97b.jpg": "",
     "img-0004.jpg": ""
-  }
+  },
+  "categories": [
+    {
+      "id": "bilezikler",
+      "tr": "Bilezikler",
+      "en": "Bracelets"
+    },
+    {
+      "id": "kolyeler",
+      "tr": "Kolyeler",
+      "en": "Necklaces"
+    },
+    {
+      "id": "yuzukler",
+      "tr": "Yüzükler",
+      "en": "Rings"
+    },
+    {
+      "id": "uretimimizden",
+      "tr": "Üretimimizden",
+      "en": "From Our Atelier"
+    }
+  ]
 }
