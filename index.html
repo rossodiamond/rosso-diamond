@@ -62,12 +62,18 @@
     font-size: clamp(30px, 5.5vw, 56px); letter-spacing: 0.04em;
   }
 
-  .intro { max-width: 640px; margin: 0 auto; padding: 72px 24px 56px; text-align: center; }
+  .intro { max-width: 640px; margin: 0 auto; padding: 72px 24px 40px; text-align: center; }
   .divider { display: flex; align-items: center; gap: 14px; justify-content: center; }
   .divider .rule { height: 1px; width: 72px; background: var(--line); }
   .intro p { font-size: 17px; line-height: 1.85; margin-top: 28px; white-space: pre-wrap; }
 
   .gallery { max-width: 1100px; margin: 0 auto; padding: 0 24px 96px; }
+  .cat { margin-top: 56px; }
+  .cat-head { text-align: center; margin-bottom: 32px; }
+  .cat-title {
+    font-family: "Marcellus", serif; font-weight: 400; font-size: clamp(22px, 3vw, 30px);
+    letter-spacing: 0.14em; text-transform: uppercase; margin-top: 18px;
+  }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 28px; }
   figure .frame { border: 1px solid var(--line); padding: 10px; background: #fff; }
   figure img {
@@ -81,7 +87,7 @@
   }
   .empty {
     text-align: center; padding: 48px 0; border: 1px dashed var(--line);
-    font-size: 14px; color: var(--ink-soft);
+    font-size: 14px; color: var(--ink-soft); margin-top: 40px;
   }
 
   footer { border-top: 1px solid var(--line); padding: 36px 24px; text-align: center; }
@@ -135,9 +141,17 @@
     tr: { langBtn: "English", empty: "Koleksiyon fotoğrafları yakında burada.", footer: "Fine Jewellery · İstanbul", docLang: "tr" }
   };
 
+  // Kategori tanımları — content.json içinde "categories" varsa onu kullanır
+  var DEFAULT_CATEGORIES = [
+    { id: "bilezikler", tr: "Bilezikler", en: "Bracelets" },
+    { id: "kolyeler", tr: "Kolyeler", en: "Necklaces" },
+    { id: "yuzukler", tr: "Yüzükler", en: "Rings" },
+    { id: "uretimimizden", tr: "Üretimimizden", en: "From Our Atelier" }
+  ];
+
   var lang = localStorage.getItem("rd-lang") || "en";
   var content = null;
-  var photos = [];
+  var gallery = {}; // { kategoriId: [dosya, ...], _genel: [...] }
 
   function prettifyFilename(name) {
     return name
@@ -145,6 +159,43 @@
       .replace(/^\d+[-_ ]*/, "")
       .replace(/[-_]+/g, " ")
       .trim();
+  }
+
+  function diamondSvg(size) {
+    var s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    s.setAttribute("width", size); s.setAttribute("height", size);
+    s.setAttribute("viewBox", "0 0 10 10");
+    s.innerHTML = '<rect x="2.2" y="2.2" width="5.6" height="5.6" transform="rotate(45 5 5)" fill="none" stroke="var(--rose)" stroke-width="0.9"/>';
+    return s;
+  }
+
+  function buildGrid(catId, files, captions, startIdx) {
+    var grid = document.createElement("div");
+    grid.className = "grid";
+    files.forEach(function (file, i) {
+      var fig = document.createElement("figure");
+      fig.className = "fade";
+      fig.style.animationDelay = Math.min((startIdx + i) * 50, 350) + "ms";
+      var frame = document.createElement("div");
+      frame.className = "frame";
+      var img = document.createElement("img");
+      img.loading = "lazy";
+      var rel = (catId === "_genel" ? "" : catId + "/") + file;
+      img.src = "images/gallery/" + rel.split("/").map(encodeURIComponent).join("/");
+      var key = catId === "_genel" ? file : catId + "/" + file;
+      var caption = captions[key] !== undefined ? captions[key]
+                  : (captions[file] !== undefined ? captions[file] : prettifyFilename(file));
+      img.alt = caption || "Rosso Diamond";
+      frame.appendChild(img);
+      fig.appendChild(frame);
+      if (caption) {
+        var cap = document.createElement("figcaption");
+        cap.textContent = caption;
+        fig.appendChild(cap);
+      }
+      grid.appendChild(fig);
+    });
+    return grid;
   }
 
   function render() {
@@ -183,40 +234,52 @@
     };
     img.src = "images/banner.jpg?v=" + Date.now();
 
-    // Gallery
+    // Galeri — kategoriler
     var wrap = document.getElementById("galleryContent");
     wrap.innerHTML = "";
-    if (!photos.length) {
+    var captions = (content && content.captions) || {};
+    var cats = (content && Array.isArray(content.categories) && content.categories.length)
+      ? content.categories : DEFAULT_CATEGORIES;
+
+    var totalShown = 0;
+    var counter = 0;
+
+    // Önce kategorisiz (eski/kök) fotoğraflar — başlıksız
+    if (gallery._genel && gallery._genel.length) {
+      var g0 = buildGrid("_genel", gallery._genel, captions, counter);
+      counter += gallery._genel.length;
+      totalShown += gallery._genel.length;
+      var wrap0 = document.createElement("div");
+      wrap0.className = "cat";
+      wrap0.appendChild(g0);
+      wrap.appendChild(wrap0);
+    }
+
+    cats.forEach(function (cat) {
+      var files = gallery[cat.id];
+      if (!files || !files.length) return;
+      var sec = document.createElement("div");
+      sec.className = "cat";
+      var head = document.createElement("div");
+      head.className = "cat-head";
+      head.appendChild(diamondSvg(10));
+      var title = document.createElement("h2");
+      title.className = "cat-title";
+      title.textContent = cat[lang] || cat.tr || cat.id;
+      head.appendChild(title);
+      sec.appendChild(head);
+      sec.appendChild(buildGrid(cat.id, files, captions, counter));
+      counter += files.length;
+      totalShown += files.length;
+      wrap.appendChild(sec);
+    });
+
+    if (!totalShown) {
       var empty = document.createElement("div");
       empty.className = "empty";
       empty.textContent = t.empty;
       wrap.appendChild(empty);
-      return;
     }
-    var grid = document.createElement("div");
-    grid.className = "grid";
-    var captions = (content && content.captions) || {};
-    photos.forEach(function (file, i) {
-      var fig = document.createElement("figure");
-      fig.className = "fade";
-      fig.style.animationDelay = Math.min(i * 60, 400) + "ms";
-      var frame = document.createElement("div");
-      frame.className = "frame";
-      var pimg = document.createElement("img");
-      pimg.loading = "lazy";
-      pimg.src = "images/gallery/" + encodeURIComponent(file);
-      var caption = captions[file] !== undefined ? captions[file] : prettifyFilename(file);
-      pimg.alt = caption || "Rosso Diamond";
-      frame.appendChild(pimg);
-      fig.appendChild(frame);
-      if (caption) {
-        var cap = document.createElement("figcaption");
-        cap.textContent = caption;
-        fig.appendChild(cap);
-      }
-      grid.appendChild(fig);
-    });
-    wrap.appendChild(grid);
   }
 
   document.getElementById("langToggle").addEventListener("click", function () {
@@ -227,10 +290,12 @@
 
   Promise.all([
     fetch("content.json?v=" + Date.now()).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }),
-    fetch("gallery.json?v=" + Date.now()).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; })
+    fetch("gallery.json?v=" + Date.now()).then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; })
   ]).then(function (res) {
     content = res[0];
-    photos = Array.isArray(res[1]) ? res[1] : [];
+    var g = res[1];
+    if (Array.isArray(g)) { gallery = { _genel: g }; } // eski biçimle uyumluluk
+    else { gallery = g || {}; }
     render();
   });
 })();

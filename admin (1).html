@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex" />
+<title>Rosso Diamond — Yönetim</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ivory:#FAF7F3; --blush:#EAD5D3; --rose:#B76E79; --rose-dark:#9A5560;
+    --champagne:#E7DCC8; --ink:#3B2F34; --ink-soft:#7A6A6E; --line:#E3D6D4;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--ivory); color:var(--ink); font-family:"Jost",sans-serif; font-weight:300; }
+  header {
+    background:#fff; border-bottom:1px solid var(--line); padding:18px 28px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    position:sticky; top:0; z-index:10;
+  }
+  .brand { display:flex; align-items:center; gap:10px; }
+  .wordmark { font-family:"Marcellus",serif; font-size:17px; letter-spacing:.14em; }
+  .badge { font-size:11px; letter-spacing:.18em; color:var(--rose); text-transform:uppercase; border-left:1px solid var(--line); padding-left:10px; }
+  main { max-width:860px; margin:0 auto; padding:40px 24px 100px; display:flex; flex-direction:column; gap:32px; }
+  section { background:#fff; border:1px solid var(--line); padding:28px; }
+  h2 { font-family:"Marcellus",serif; font-size:19px; font-weight:400; margin-bottom:14px; }
+  h3 { font-family:"Marcellus",serif; font-size:15px; font-weight:400; letter-spacing:.12em; text-transform:uppercase; color:var(--rose-dark); margin:26px 0 12px; }
+  label { display:block; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px; }
+  input[type=text], input[type=password], textarea, select {
+    width:100%; font-family:"Jost",sans-serif; font-size:15px; padding:10px 12px;
+    border:1px solid var(--line); border-radius:2px; background:#fff; color:var(--ink); margin-bottom:14px;
+  }
+  input:focus, textarea:focus, select:focus, button:focus-visible { outline:2px solid var(--rose); outline-offset:2px; }
+  textarea { resize:vertical; }
+  .btn {
+    font-family:"Jost",sans-serif; font-size:13px; letter-spacing:.12em; text-transform:uppercase;
+    padding:10px 22px; border:1px solid var(--rose); background:var(--rose); color:#fff;
+    border-radius:2px; cursor:pointer; transition:background .18s ease;
+  }
+  .btn.ghost { background:transparent; color:var(--rose-dark); }
+  .btn:disabled { opacity:.5; cursor:default; }
+  .btn.small { font-size:11px; padding:6px 12px; }
+  .hint { font-size:12px; color:var(--ink-soft); margin:-6px 0 14px; line-height:1.6; }
+  .lang-block { border:1px solid var(--line); padding:18px; margin-bottom:18px; }
+  .lang-title { font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--rose-dark); margin-bottom:12px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:16px; }
+  .card { border:1px solid var(--line); }
+  .card img { width:100%; height:150px; object-fit:cover; display:block; }
+  .card .pad { padding:8px; }
+  .card input, .card select { font-size:13px; padding:6px 8px; margin-bottom:8px; }
+  .card .btn { width:100%; }
+  #log {
+    position:fixed; bottom:0; left:0; right:0; background:var(--ink); color:#fff;
+    font-size:13px; padding:10px 20px; display:none; z-index:50; text-align:center;
+  }
+  .banner-preview { width:100%; max-height:240px; object-fit:cover; border:1px solid var(--line); margin-bottom:14px; display:block; }
+  .banner-empty { height:130px; background:var(--blush); display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--rose-dark); margin-bottom:14px; }
+  .setup-box { max-width:520px; margin:60px auto; }
+  ol { padding-left:20px; font-size:14px; line-height:1.9; color:var(--ink-soft); margin-bottom:18px; }
+  a { color:var(--rose-dark); }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <svg width="13" height="13" viewBox="0 0 10 10" aria-hidden="true"><rect x="2.2" y="2.2" width="5.6" height="5.6" transform="rotate(45 5 5)" fill="none" stroke="var(--rose)" stroke-width="0.9"/></svg>
+    <span class="wordmark">ROSSO DIAMOND</span>
+    <span class="badge">Yönetim</span>
+  </div>
+  <div class="row">
+    <a href="index.html" style="font-size:12px; letter-spacing:.14em; text-transform:uppercase; text-decoration:none;">Siteyi Gör</a>
+    <button class="btn ghost small" id="logoutBtn" style="display:none;">Anahtarı Unut</button>
+  </div>
+</header>
+
+<main id="app"></main>
+<div id="log" role="status"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ————— Depo ayarları —————
+  var OWNER = "rossodiamond";
+  var REPO = "rosso-diamond";
+  var BRANCH = "main";
+  var API = "https://api.github.com/repos/" + OWNER + "/" + REPO + "/contents/";
+  var RAW = "https://raw.githubusercontent.com/" + OWNER + "/" + REPO + "/" + BRANCH + "/";
+
+  // Kategoriler — content.json "categories" ile geçersiz kılınabilir
+  var DEFAULT_CATEGORIES = [
+    { id: "bilezikler", tr: "Bilezikler", en: "Bracelets" },
+    { id: "kolyeler", tr: "Kolyeler", en: "Necklaces" },
+    { id: "yuzukler", tr: "Yüzükler", en: "Rings" },
+    { id: "uretimimizden", tr: "Üretimimizden", en: "From Our Atelier" }
+  ];
+
+  var token = localStorage.getItem("rd-token") || "";
+  var app = document.getElementById("app");
+  var gallery = {};      // { katId: [{name, sha}], _genel: [...] }
+  var content = null;
+  var contentSha = null;
+
+  function cats() {
+    return (content && Array.isArray(content.categories) && content.categories.length)
+      ? content.categories : DEFAULT_CATEGORIES;
+  }
+  function catLabel(id) {
+    if (id === "_genel") return "Kategorisiz";
+    var c = cats().filter(function (x) { return x.id === id; })[0];
+    return c ? (c.tr || c.id) : id;
+  }
+  function capKey(catId, name) { return catId === "_genel" ? name : catId + "/" + name; }
+  function filePath(catId, name) {
+    return "images/gallery/" + (catId === "_genel" ? "" : catId + "/") + name;
+  }
+
+  // ————— Yardımcılar —————
+  function log(msg, ms) {
+    var el = document.getElementById("log");
+    el.textContent = msg;
+    el.style.display = "block";
+    clearTimeout(el._t);
+    el._t = setTimeout(function () { el.style.display = "none"; }, ms || 3000);
+  }
+
+  function gh(path, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({
+      "Authorization": "Bearer " + token,
+      "Accept": "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28"
+    }, opts.headers || {});
+    return fetch(API + path, opts).then(function (r) {
+      if (r.status === 401) { throw new Error("AUTH"); }
+      return r;
+    });
+  }
+
+  function slugify(name) {
+    var ext = ".jpg";
+    var base = name.replace(/\.[^.]+$/, "");
+    var map = { "ç":"c","Ç":"c","ğ":"g","Ğ":"g","ı":"i","İ":"i","ö":"o","Ö":"o","ş":"s","Ş":"s","ü":"u","Ü":"u" };
+    base = base.replace(/[çÇğĞıİöÖşŞüÜ]/g, function (c) { return map[c]; });
+    base = base.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    if (!base) base = "foto-" + Date.now().toString(36);
+    return base + ext;
+  }
+
+  function prettify(name) {
+    return name.replace(/\.[^.]+$/, "").replace(/^\d+[-_ ]*/, "").replace(/[-_]+/g, " ").trim();
+  }
+
+  function compress(file, maxDim, quality) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onerror = function () { reject(new Error("Dosya okunamadı")); };
+      reader.onload = function () {
+        var img = new Image();
+        img.onerror = function () { reject(new Error("Görsel açılamadı")); };
+        img.onload = function () {
+          var w = img.width, h = img.height;
+          if (w > maxDim || h > maxDim) {
+            var s = maxDim / Math.max(w, h);
+            w = Math.round(w * s); h = Math.round(h * s);
+          }
+          var c = document.createElement("canvas");
+          c.width = w; c.height = h;
+          c.getContext("2d").drawImage(img, 0, 0, w, h);
+          resolve(c.toDataURL("image/jpeg", quality).split(",")[1]);
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function putFile(path, base64, message, sha, attempt) {
+    var body = { message: message, content: base64, branch: BRANCH };
+    if (sha) body.sha = sha;
+    return gh(path, { method: "PUT", body: JSON.stringify(body) }).then(function (r) {
+      if (r.status === 409 && !attempt) {
+        return gh(path + "?ref=" + BRANCH).then(function (rr) {
+          return rr.ok ? rr.json() : null;
+        }).then(function (info) {
+          return putFile(path, base64, message, info && info.sha, true);
+        });
+      }
+      if (!r.ok) throw new Error("Kaydetme başarısız (HTTP " + r.status + ")");
+      return r.json();
+    });
+  }
+
+  function b64encodeUtf8(str) {
+    return btoa(String.fromCharCode.apply(null, new TextEncoder().encode(str)));
+  }
+  function b64decodeUtf8(b64) {
+    var bin = atob(b64.replace(/\n/g, ""));
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+
+  // ————— Kurulum ekranı —————
+  function renderSetup(showError) {
+    document.getElementById("logoutBtn").style.display = "none";
+    app.innerHTML = "";
+    var s = document.createElement("section");
+    s.className = "setup-box";
+    s.innerHTML =
+      '<h2>Erişim Anahtarı Gerekli</h2>' +
+      '<p class="hint" style="margin-bottom:14px;">Bu panel, siteni senin adına güncelleyebilmek için GitHub\'dan alacağın bir anahtarı kullanır. Anahtar yalnızca bu tarayıcıda saklanır — bir kez yapıştır, unut.</p>' +
+      '<ol>' +
+      '<li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Bu bağlantıya git</a> (GitHub anahtar oluşturma sayfası).</li>' +
+      '<li>"Token name": <b>rosso-panel</b> yaz. "Expiration": en uzun süreyi seç.</li>' +
+      '<li>"Repository access" altında <b>Only select repositories</b> → listeden <b>rosso-diamond</b> seç.</li>' +
+      '<li>"Permissions → Repository permissions" altında <b>Contents</b> satırını bul → <b>Read and write</b> yap.</li>' +
+      '<li>En altta <b>Generate token</b> → çıkan <b>github_pat_...</b> ile başlayan uzun metni kopyala.</li>' +
+      '</ol>' +
+      (showError ? '<p class="hint" style="color:var(--rose-dark);">Anahtar geçersiz veya süresi dolmuş görünüyor — yeni bir anahtar oluşturup tekrar yapıştır.</p>' : '') +
+      '<label for="tokenInput">Anahtarı buraya yapıştır</label>' +
+      '<input type="password" id="tokenInput" placeholder="github_pat_..." />' +
+      '<button class="btn" id="tokenSave">Kaydet ve Panele Gir</button>';
+    app.appendChild(s);
+    document.getElementById("tokenSave").addEventListener("click", function () {
+      var v = document.getElementById("tokenInput").value.trim();
+      if (v.length < 20) { log("Anahtar eksik görünüyor."); return; }
+      token = v;
+      localStorage.setItem("rd-token", v);
+      boot();
+    });
+  }
+
+  // ————— Panel —————
+  function renderPanel() {
+    document.getElementById("logoutBtn").style.display = "";
+    app.innerHTML = "";
+
+    // Banner
+    var sb = document.createElement("section");
+    sb.innerHTML = '<h2>Banner Görseli</h2><div id="bannerBox"></div>' +
+      '<input type="file" id="bannerFile" accept="image/*" style="display:none;" />' +
+      '<button class="btn" id="bannerBtn">Banner Yükle / Değiştir</button>' +
+      '<p class="hint" style="margin-top:10px;">Geniş, yatay bir fotoğraf seç. Otomatik boyutlandırılır.</p>';
+    app.appendChild(sb);
+    refreshBannerPreview();
+    document.getElementById("bannerBtn").addEventListener("click", function () {
+      document.getElementById("bannerFile").click();
+    });
+    document.getElementById("bannerFile").addEventListener("change", function (e) {
+      var f = e.target.files[0];
+      if (!f) return;
+      var btn = document.getElementById("bannerBtn");
+      btn.disabled = true; btn.textContent = "Yükleniyor…";
+      gh("images/banner.jpg?ref=" + BRANCH).then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (info) {
+          return compress(f, 2000, 0.82).then(function (b64) {
+            return putFile("images/banner.jpg", b64, "Banner guncellendi", info && info.sha);
+          });
+        })
+        .then(function () { log("Banner güncellendi. Sitede görünmesi 1-2 dakika sürebilir."); refreshBannerPreview(true); })
+        .catch(handleErr)
+        .finally(function () { btn.disabled = false; btn.textContent = "Banner Yükle / Değiştir"; e.target.value = ""; });
+    });
+
+    // Metinler
+    var st = document.createElement("section");
+    st.innerHTML = '<h2>Metinler</h2><div id="textsBox"><p class="hint">Yükleniyor…</p></div>';
+    app.appendChild(st);
+
+    // Galeri
+    var sg = document.createElement("section");
+    sg.innerHTML =
+      '<h2>Koleksiyon Fotoğrafları <span id="photoCount"></span></h2>' +
+      '<div class="row" style="margin-bottom:6px;">' +
+      '<div style="flex:1 1 200px;"><label>Yüklenecek kategori</label><select id="catSelect"></select></div>' +
+      '<span style="padding-top:14px;"><input type="file" id="photoFiles" accept="image/*" multiple style="display:none;" />' +
+      '<button class="btn" id="photoBtn">Fotoğraf Ekle</button></span></div>' +
+      '<p class="hint">Önce kategoriyi seç, sonra fotoğrafları ekle. Adlar otomatik düzeltilir, görseller boyutlandırılır. Fotoğrafı başka kategoriye geçirmek için kartındaki "Taşı" listesini kullan.</p>' +
+      '<div id="galleryBox"><p class="hint">Yükleniyor…</p></div>';
+    app.appendChild(sg);
+
+    loadContent().then(function () {
+      renderTexts();
+      fillCatSelect();
+      return loadGallery();
+    }).then(renderGallery).catch(handleErr);
+
+    document.getElementById("photoBtn").addEventListener("click", function () {
+      document.getElementById("photoFiles").click();
+    });
+    document.getElementById("photoFiles").addEventListener("change", function (e) {
+      var files = Array.prototype.slice.call(e.target.files);
+      if (!files.length) return;
+      uploadPhotos(files, document.getElementById("catSelect").value);
+      e.target.value = "";
+    });
+  }
+
+  function fillCatSelect() {
+    var sel = document.getElementById("catSelect");
+    if (!sel) return;
+    sel.innerHTML = "";
+    cats().forEach(function (c) {
+      var o = document.createElement("option");
+      o.value = c.id;
+      o.textContent = c.tr || c.id;
+      sel.appendChild(o);
+    });
+  }
+
+  function refreshBannerPreview(bust) {
+    var box = document.getElementById("bannerBox");
+    if (!box) return;
+    var img = new Image();
+    img.className = "banner-preview";
+    img.alt = "Banner";
+    img.onload = function () { box.innerHTML = ""; box.appendChild(img); };
+    img.onerror = function () { box.innerHTML = '<div class="banner-empty">Henüz banner yüklenmedi</div>'; };
+    img.src = RAW + "images/banner.jpg" + (bust ? "?v=" + Date.now() : "");
+  }
+
+  function loadContent() {
+    return gh("content.json?ref=" + BRANCH).then(function (r) {
+      if (!r.ok) throw new Error("content.json okunamadı");
+      return r.json();
+    }).then(function (info) {
+      contentSha = info.sha;
+      content = JSON.parse(b64decodeUtf8(info.content));
+      if (!content.captions) content.captions = {};
+      if (!content.categories) content.categories = DEFAULT_CATEGORIES;
+      return content;
+    });
+  }
+
+  function saveContent(message) {
+    return putFile("content.json", b64encodeUtf8(JSON.stringify(content, null, 2)), message, contentSha)
+      .then(function (res) { contentSha = res.content.sha; });
+  }
+
+  function renderTexts() {
+    var box = document.getElementById("textsBox");
+    box.innerHTML = "";
+    ["en", "tr"].forEach(function (code) {
+      var d = document.createElement("div");
+      d.className = "lang-block";
+      d.innerHTML =
+        '<p class="lang-title">' + (code === "en" ? "İngilizce içerik" : "Türkçe içerik") + '</p>' +
+        '<label>Başlık</label><input type="text" data-f="headline" data-l="' + code + '" />' +
+        '<label>Alt başlık</label><input type="text" data-f="subline" data-l="' + code + '" />' +
+        '<label>Tanıtım metni</label><textarea rows="4" data-f="intro" data-l="' + code + '"></textarea>';
+      box.appendChild(d);
+      d.querySelectorAll("[data-f]").forEach(function (el) {
+        el.value = (content[code] && content[code][el.getAttribute("data-f")]) || "";
+      });
+    });
+    var btn = document.createElement("button");
+    btn.className = "btn";
+    btn.textContent = "Metinleri Kaydet";
+    btn.addEventListener("click", function () {
+      box.querySelectorAll("[data-f]").forEach(function (el) {
+        var l = el.getAttribute("data-l");
+        if (!content[l]) content[l] = {};
+        content[l][el.getAttribute("data-f")] = el.value;
+      });
+      btn.disabled = true;
+      saveContent("Metinler guncellendi")
+        .then(function () { log("Metinler kaydedildi. Sitede görünmesi 1-2 dakika sürebilir."); })
+        .catch(handleErr)
+        .finally(function () { btn.disabled = false; });
+    });
+    box.appendChild(btn);
+  }
+
+  function listDir(path) {
+    return gh(path + "?ref=" + BRANCH).then(function (r) {
+      if (r.status === 404) return [];
+      if (!r.ok) throw new Error("Klasör okunamadı: " + path);
+      return r.json();
+    });
+  }
+
+  function loadGallery() {
+    gallery = {};
+    return listDir("images/gallery").then(function (rootList) {
+      var rootItems = Array.isArray(rootList) ? rootList : [];
+      var rootFiles = rootItems.filter(function (f) {
+        return f.type === "file" && /\.(jpe?g|png|webp)$/i.test(f.name);
+      });
+      if (rootFiles.length) gallery._genel = rootFiles.sort(byName);
+
+      var known = cats().map(function (c) { return c.id; });
+      var dirs = rootItems.filter(function (f) { return f.type === "dir"; }).map(function (f) { return f.name; });
+      // tanımlı kategoriler + depoda bulunan diğer klasörler
+      var toLoad = known.concat(dirs.filter(function (d) { return known.indexOf(d) === -1; }));
+
+      return Promise.all(toLoad.map(function (id) {
+        if (dirs.indexOf(id) === -1) return Promise.resolve();
+        return listDir("images/gallery/" + id).then(function (list) {
+          var fs = (Array.isArray(list) ? list : []).filter(function (f) {
+            return f.type === "file" && /\.(jpe?g|png|webp)$/i.test(f.name);
+          });
+          if (fs.length) gallery[id] = fs.sort(byName);
+        });
+      }));
+    });
+  }
+  function byName(a, b) { return a.name.localeCompare(b.name); }
+
+  function renderGallery() {
+    var box = document.getElementById("galleryBox");
+    var total = 0;
+    Object.keys(gallery).forEach(function (k) { total += gallery[k].length; });
+    document.getElementById("photoCount").textContent = "(" + total + ")";
+    box.innerHTML = "";
+    if (!total) {
+      box.innerHTML = '<p class="hint">Henüz fotoğraf yok. Kategori seçip "Fotoğraf Ekle" ile başla.</p>';
+      return;
+    }
+    var order = ["_genel"].concat(cats().map(function (c) { return c.id; }))
+      .concat(Object.keys(gallery).filter(function (k) {
+        return k !== "_genel" && !cats().some(function (c) { return c.id === k; });
+      }));
+    order.forEach(function (catId) {
+      var files = gallery[catId];
+      if (!files || !files.length) return;
+      var h = document.createElement("h3");
+      h.textContent = catLabel(catId) + " (" + files.length + ")";
+      box.appendChild(h);
+      if (catId === "_genel") {
+        var warn = document.createElement("p");
+        warn.className = "hint";
+        warn.textContent = "Bu fotoğraflar henüz bir kategoriye ait değil; sitede en üstte başlıksız görünürler. Her kartın \"Taşı\" listesinden kategorilerine gönder.";
+        box.appendChild(warn);
+      }
+      var grid = document.createElement("div");
+      grid.className = "grid";
+      files.forEach(function (f) { grid.appendChild(photoCard(catId, f)); });
+      box.appendChild(grid);
+    });
+  }
+
+  function photoCard(catId, f) {
+    var card = document.createElement("div");
+    card.className = "card";
+    var img = document.createElement("img");
+    img.loading = "lazy";
+    img.src = RAW + filePath(catId, f.name).split("/").map(encodeURIComponent).join("/");
+    img.alt = f.name;
+    var pad = document.createElement("div");
+    pad.className = "pad";
+
+    var cap = document.createElement("input");
+    cap.type = "text";
+    cap.placeholder = "Açıklama (isteğe bağlı)";
+    var key = capKey(catId, f.name);
+    cap.value = content.captions[key] !== undefined ? content.captions[key]
+              : (catId === "_genel" && content.captions[f.name] !== undefined ? content.captions[f.name] : prettify(f.name));
+    cap.addEventListener("blur", function () {
+      content.captions[key] = cap.value;
+      saveContent("Aciklama guncellendi: " + key)
+        .then(function () { log("Açıklama kaydedildi."); })
+        .catch(handleErr);
+    });
+
+    var move = document.createElement("select");
+    var opt0 = document.createElement("option");
+    opt0.value = ""; opt0.textContent = "Taşı…";
+    move.appendChild(opt0);
+    cats().forEach(function (c) {
+      if (c.id === catId) return;
+      var o = document.createElement("option");
+      o.value = c.id; o.textContent = c.tr || c.id;
+      move.appendChild(o);
+    });
+    move.addEventListener("change", function () {
+      var target = move.value;
+      if (!target) return;
+      move.disabled = true;
+      movePhoto(catId, f, target).catch(handleErr).finally(function () { move.disabled = false; });
+    });
+
+    var del = document.createElement("button");
+    del.className = "btn ghost small";
+    del.textContent = "Sil";
+    del.addEventListener("click", function () {
+      if (!confirm(f.name + " silinsin mi?")) return;
+      del.disabled = true;
+      gh(filePath(catId, f.name).split("/").map(encodeURIComponent).join("/"), {
+        method: "DELETE",
+        body: JSON.stringify({ message: "Foto silindi: " + f.name, sha: f.sha, branch: BRANCH })
+      }).then(function (r) {
+        if (!r.ok) throw new Error("Silme başarısız (HTTP " + r.status + ")");
+        if (content.captions[key] !== undefined) {
+          delete content.captions[key];
+          return saveContent("Aciklama silindi: " + key);
+        }
+      }).then(function () {
+        log("Fotoğraf silindi.");
+        return loadGallery().then(renderGallery);
+      }).catch(handleErr);
+    });
+
+    pad.appendChild(cap);
+    pad.appendChild(move);
+    pad.appendChild(del);
+    card.appendChild(img);
+    card.appendChild(pad);
+    return card;
+  }
+
+  function movePhoto(fromCat, f, toCat) {
+    var oldPath = filePath(fromCat, f.name);
+    var newPath = filePath(toCat, f.name);
+    log("Taşınıyor…", 8000);
+    // 1) içeriği al
+    return gh(oldPath.split("/").map(encodeURIComponent).join("/") + "?ref=" + BRANCH)
+      .then(function (r) {
+        if (!r.ok) throw new Error("Dosya okunamadı");
+        return r.json();
+      })
+      .then(function (info) {
+        var b64 = info.content.replace(/\n/g, "");
+        // 2) yeni yere yaz
+        return putFile(newPath, b64, "Foto tasindi: " + f.name + " -> " + toCat);
+      })
+      .then(function () {
+        // 3) eskisini sil
+        return gh(oldPath.split("/").map(encodeURIComponent).join("/"), {
+          method: "DELETE",
+          body: JSON.stringify({ message: "Tasima sonrasi silindi: " + f.name, sha: f.sha, branch: BRANCH })
+        });
+      })
+      .then(function (r) {
+        if (!r.ok) throw new Error("Eski kopya silinemedi (HTTP " + r.status + ")");
+        // 4) açıklamayı yeni anahtara taşı
+        var oldKey = capKey(fromCat, f.name);
+        var legacyKey = fromCat === "_genel" ? f.name : null;
+        var val = content.captions[oldKey] !== undefined ? content.captions[oldKey]
+                : (legacyKey && content.captions[legacyKey] !== undefined ? content.captions[legacyKey] : undefined);
+        if (val !== undefined) {
+          delete content.captions[oldKey];
+          if (legacyKey) delete content.captions[legacyKey];
+          content.captions[capKey(toCat, f.name)] = val;
+          return saveContent("Aciklama tasindi: " + f.name);
+        }
+      })
+      .then(function () {
+        log("Fotoğraf \"" + catLabel(toCat) + "\" kategorisine taşındı.");
+        return loadGallery().then(renderGallery);
+      });
+  }
+
+  function uploadPhotos(files, catId) {
+    var btn = document.getElementById("photoBtn");
+    btn.disabled = true;
+    var done = 0;
+    var existing = {};
+    (gallery[catId] || []).forEach(function (f) { existing[f.name] = true; });
+
+    var chain = Promise.resolve();
+    files.forEach(function (file) {
+      chain = chain.then(function () {
+        var name = slugify(file.name);
+        var i = 2;
+        while (existing[name]) { name = name.replace(/\.jpg$/, "") + "-" + (i++) + ".jpg"; }
+        existing[name] = true;
+        btn.textContent = "Yükleniyor " + (done + 1) + "/" + files.length + "…";
+        return compress(file, 1600, 0.8).then(function (b64) {
+          return putFile(filePath(catId, name), b64, "Foto eklendi (" + catId + "): " + name);
+        }).then(function () { done++; });
+      });
+    });
+
+    chain.then(function () {
+      log(done + " fotoğraf \"" + catLabel(catId) + "\" kategorisine yüklendi. Sitede görünmesi 1-2 dakika sürebilir.");
+      return loadGallery().then(renderGallery);
+    }).catch(handleErr).finally(function () {
+      btn.disabled = false;
+      btn.textContent = "Fotoğraf Ekle";
+    });
+  }
+
+  function handleErr(err) {
+    if (err && err.message === "AUTH") {
+      localStorage.removeItem("rd-token");
+      token = "";
+      renderSetup(true);
+      return;
+    }
+    log("Hata: " + (err && err.message ? err.message : "bilinmeyen sorun"), 5000);
+  }
+
+  document.getElementById("logoutBtn").addEventListener("click", function () {
+    localStorage.removeItem("rd-token");
+    token = "";
+    renderSetup();
+  });
+
+  function boot() {
+    if (!token) { renderSetup(); return; }
+    gh("content.json?ref=" + BRANCH).then(function (r) {
+      if (r.status === 401 || r.status === 403) { throw new Error("AUTH"); }
+      renderPanel();
+    }).catch(function (e) {
+      if (e.message === "AUTH") { localStorage.removeItem("rd-token"); token = ""; renderSetup(true); }
+      else renderPanel();
+    });
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
